@@ -15,6 +15,23 @@ function escapeHtml(text) {
 }
 
 /**
+ * Membersihkan format BOT_TOKEN dari whitespace, kutip, atau prefiks 'bot' yang tidak disengaja
+ * @returns {string}
+ */
+function getCleanBotToken() {
+  const rawToken = process.env.BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN;
+  if (!rawToken) return '';
+  let token = String(rawToken).trim();
+  // Hapus kutip ganda/tunggal jika terbawa saat copy-paste di environment
+  token = token.replace(/^["']+|["']+$/g, '');
+  // Hapus prefiks 'bot' jika pengguna tidak sengaja menyertakannya
+  if (token.toLowerCase().startsWith('bot') && !token.startsWith('bot-')) {
+    token = token.slice(3).trim();
+  }
+  return token;
+}
+
+/**
  * Mengirim pesan balasan ke Telegram Chat menggunakan Bot API sendMessage
  * 
  * @param {Object} options
@@ -32,7 +49,7 @@ async function sendTelegramMessage({
   parseMode = 'HTML',
   disableWebPagePreview = false
 }) {
-  const botToken = process.env.BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN;
+  const botToken = getCleanBotToken();
 
   if (!botToken) {
     console.error('[TelegramService] Error: BOT_TOKEN tidak ditemukan pada environment variables.');
@@ -67,7 +84,8 @@ async function sendTelegramMessage({
     if (error.response?.data) {
       errorDetail = JSON.stringify(error.response.data);
     }
-    console.error(`[TelegramService] Gagal mengirim pesan ke chat ${chatId}: ${errorDetail}`);
+    const tokenPreview = botToken ? `${botToken.slice(0, 4)}...${botToken.slice(-4)}` : 'null';
+    console.error(`[TelegramService] Gagal mengirim pesan ke chat ${chatId} (Token: ${tokenPreview}): ${errorDetail}`);
     throw new Error(`Telegram API Error: ${errorDetail}`);
   }
 }

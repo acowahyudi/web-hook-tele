@@ -207,22 +207,9 @@ async function processTelegramUpdate(update) {
   }
 
   // 8. Hit GitLab CI/CD Pipeline Trigger API
+  let pipelineResult;
   try {
-    const result = await gitlabService.triggerGitlabPipeline(projectConfig);
-
-    const successMessage = 
-      `🚀 <b>GitLab CI/CD Pipeline Berhasil Dibuat!</b>\n\n` +
-      `📦 <b>Proyek:</b> <code>${telegramService.escapeHtml(matchedKey)}</code>\n` +
-      `🌿 <b>Branch:</b> <code>${telegramService.escapeHtml(result.ref || projectConfig.ref)}</code>\n` +
-      `🆔 <b>Pipeline ID:</b> <code>#${telegramService.escapeHtml(result.id)}</code>\n` +
-      `📊 <b>Status:</b> <code>${telegramService.escapeHtml(result.status || 'created')}</code>\n` +
-      `🔗 <b>Tautan Pipeline:</b> <a href="${telegramService.escapeHtml(result.web_url)}">${telegramService.escapeHtml(result.web_url)}</a>`;
-
-    await telegramService.sendTelegramMessage({
-      chatId,
-      text: successMessage,
-      replyToMessageId: messageId
-    });
+    pipelineResult = await gitlabService.triggerGitlabPipeline(projectConfig);
   } catch (err) {
     console.error(`[GitLab Trigger Error] Gagal memicu pipeline untuk ${matchedKey}:`, err.message);
 
@@ -237,7 +224,23 @@ async function processTelegramUpdate(update) {
       text: errorMessage,
       replyToMessageId: messageId
     });
+    return;
   }
+
+  // 9. Kirim feedback sukses ke grup Telegram
+  const successMessage = 
+    `🚀 <b>GitLab CI/CD Pipeline Berhasil Dibuat!</b>\n\n` +
+    `📦 <b>Proyek:</b> <code>${telegramService.escapeHtml(matchedKey)}</code>\n` +
+    `🌿 <b>Branch:</b> <code>${telegramService.escapeHtml(pipelineResult.ref || projectConfig.ref)}</code>\n` +
+    `🆔 <b>Pipeline ID:</b> <code>#${telegramService.escapeHtml(pipelineResult.id)}</code>\n` +
+    `📊 <b>Status:</b> <code>${telegramService.escapeHtml(pipelineResult.status || 'created')}</code>\n` +
+    `🔗 <b>Tautan Pipeline:</b> <a href="${telegramService.escapeHtml(pipelineResult.web_url)}">${telegramService.escapeHtml(pipelineResult.web_url)}</a>`;
+
+  await telegramService.sendTelegramMessage({
+    chatId,
+    text: successMessage,
+    replyToMessageId: messageId
+  });
 }
 
 // Hanya jalankan app.listen jika file dieksekusi langsung (bukan saat di-import oleh test)
