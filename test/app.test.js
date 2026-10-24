@@ -212,6 +212,8 @@ describe('Telegram Message Processing Logic Tests (Mocked Services)', () => {
     assert.strictEqual(triggeredPipelines.length, 0);
   });
 
+  const testProjectKey = Object.keys(projects)[0];
+
   test('Memberikan pesan bantuan jika hanya mengetik "git pull" tanpa alias', async () => {
     await processTelegramUpdate({
       message: {
@@ -223,7 +225,7 @@ describe('Telegram Message Processing Logic Tests (Mocked Services)', () => {
 
     assert.strictEqual(sentMessages.length, 1);
     assert.ok(sentMessages[0].text.includes('Format Perintah Belum Lengkap'));
-    assert.ok(sentMessages[0].text.includes('project-a'));
+    assert.ok(sentMessages[0].text.includes(testProjectKey));
     assert.strictEqual(sentMessages[0].replyToMessageId, 3);
   });
 
@@ -257,18 +259,18 @@ describe('Telegram Message Processing Logic Tests (Mocked Services)', () => {
   });
 
   test('Berhasil memicu pipeline GitLab jika proyek terdaftar (case-insensitive + bot mention)', async () => {
-    projects['project-a'].token = 'valid_trigger_token';
+    projects[testProjectKey].token = 'valid_trigger_token';
 
     await processTelegramUpdate({
       message: {
         message_id: 6,
         chat: { id: -1001234567890 },
-        text: '/git pull PROJECT-A@DeployBot'
+        text: `/git pull ${testProjectKey.toUpperCase()}@DeployBot`
       }
     });
 
     assert.strictEqual(triggeredPipelines.length, 1);
-    assert.strictEqual(triggeredPipelines[0].projectId, projects['project-a'].projectId);
+    assert.strictEqual(triggeredPipelines[0].projectId, projects[testProjectKey].projectId);
     assert.strictEqual(sentMessages.length, 1);
     assert.ok(sentMessages[0].text.includes('GitLab CI/CD Pipeline Berhasil Dibuat!'));
     assert.ok(sentMessages[0].text.includes('#987654'));
@@ -276,13 +278,13 @@ describe('Telegram Message Processing Logic Tests (Mocked Services)', () => {
   });
 
   test('Mengirim pesan error jika GitLab menolak trigger pipeline', async () => {
-    projects['project-a'].token = 'error_token';
+    projects[testProjectKey].token = 'error_token';
 
     await processTelegramUpdate({
       message: {
         message_id: 7,
         chat: { id: -1001234567890 },
-        text: 'git pull project-a'
+        text: `git pull ${testProjectKey}`
       }
     });
 

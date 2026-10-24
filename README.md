@@ -302,6 +302,13 @@ curl -X POST http://localhost:3000/webhook/telegram \
 4. Masukkan Environment Variables di dashboard Koyeb.
 5. Deploy & lakukan registrasi `setWebhook` Telegram.
 
+### Opsi 4: Deploy ke Vercel (Serverless)
+Repositori sudah dilengkapi dengan konfigurasi serverless [vercel.json](file:///Users/mac/Documents/AllProject/web-hook-tele/vercel.json) dan [api/index.js](file:///Users/mac/Documents/AllProject/web-hook-tele/api/index.js).
+1. Import repositori Git ini ke project baru di [Vercel](https://vercel.com).
+2. **Sangat Penting**: Karena file `.env` tidak diunggah ke Git, masukkan seluruh variabel lingkungan di menu **Project Settings > Environment Variables** di dashboard Vercel (`BOT_TOKEN`, `ALLOWED_CHAT_ID`, `TELEGRAM_SECRET_TOKEN`, `GITLAB_HOST`, dll).
+3. Klik **Deploy**.
+4. Daftarkan URL webhook Telegram dengan endpoint `https://<nama-project>.vercel.app/webhook/telegram`.
+
 ---
 
 ## 📄 Lisensi

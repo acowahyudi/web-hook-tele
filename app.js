@@ -74,7 +74,7 @@ app.get('/', (req, res) => {
  * Endpoint Telegram Webhook
  * POST /webhook/telegram
  */
-app.post('/webhook/telegram', (req, res) => {
+app.post('/webhook/telegram', async (req, res) => {
   const secretHeader = req.headers['x-telegram-bot-api-secret-token'];
   const expectedSecret = process.env.TELEGRAM_SECRET_TOKEN;
 
@@ -84,14 +84,17 @@ app.post('/webhook/telegram', (req, res) => {
     return res.status(403).json({ error: 'Forbidden: Invalid secret token' });
   }
 
-  // 2. Kirim respons HTTP 200 OK sesegera mungkin ke Telegram
-  // Hal ini penting untuk mencegah Telegram menganggap request timeout / melakukan retry loop
-  res.status(200).json({ ok: true });
-
-  // 3. Proses pesan secara asinkron di background
-  processTelegramUpdate(req.body).catch((err) => {
+  // 2. Di serverless environment (seperti Vercel), container akan langsung di-freeze
+  // setelah HTTP response dikirim jika tidak di-await.
+  // Kita await proses update agar trigger pipeline dan pesan balasan selesai tuntas.
+  try {
+    await processTelegramUpdate(req.body);
+  } catch (err) {
     console.error('[Webhook Error] Terjadi kesalahan dalam pemrosesan pesan:', err);
-  });
+  }
+
+  // 3. Kembalikan respons HTTP 200 OK ke Telegram
+  return res.status(200).json({ ok: true });
 });
 
 /**
@@ -99,6 +102,15 @@ app.post('/webhook/telegram', (req, res) => {
  * @param {Object} update Payload update dari Telegram Bot API
  */
 async function processTelegramUpdate(update) {
+  // Antisipasi jika payload dikirim dalam bentuk string
+  if (typeof update === 'string') {
+    try {
+      update = JSON.parse(update);
+    } catch {
+      return;
+    }
+  }
+
   if (!update || !update.message) {
     // Abaikan update selain pesan (misal: channel_post, inline_query, callback_query)
     return;
@@ -249,9 +261,8 @@ if (require.main === module) {
   process.on('SIGINT', () => handleShutdown('SIGINT'));
 }
 
-module.exports = {
-  app,
-  isSecretTokenValid,
-  isChatAllowed,
-  processTelegramUpdate
-};
+module.exports = app;
+module.exports.app = app;
+module.exports.isSecretTokenValid = isSecretTokenValid;
+module.exports.isChatAllowed = isChatAllowed;
+module.exports.processTelegramUpdate = processTelegramUpdate;
