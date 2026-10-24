@@ -5,15 +5,15 @@
  * Contoh: "git pull project-a" -> mencocokkan key 'project-a'
  */
 module.exports = {
-  'project-a': {
+  'project-sdkutim': {
     // URL host GitLab (dukung self-hosted maupun gitlab.com)
     gitlabHost: process.env.GITLAB_HOST || 'https://gitlab.com',
     // ID numerik proyek GitLab (bisa ditemukan di Settings > General proyek GitLab)
-    projectId: process.env.PROJECT_ID_PROJECT_A || '12345678',
+    projectId: process.env.PROJECT_ID_PROJECT_SDKUTIM || '12345678',
     // Pipeline Trigger Token (Settings > CI/CD > Pipeline trigger tokens)
-    token: process.env.TRIGGER_TOKEN_PROJECT_A,
+    token: process.env.TRIGGER_TOKEN_PROJECT_SDKUTIM,
     // Target branch runner
-    ref: process.env.REF_PROJECT_A || 'main',
+    ref: process.env.REF_PROJECT_SDKUTIM || 'main',
     // (Opsional) Variabel kustom yang diteruskan ke CI/CD Pipeline
     variables: {
       ACTION: 'git_pull',

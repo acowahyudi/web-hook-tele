@@ -1,11 +1,15 @@
 const { test, describe, before, after, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
 
-// Set environment test variables sebelum modul di-load
+// Set environment test variables sebelum modul di-load agar terisolasi dari .env lokal
+process.env.NODE_ENV = 'test';
 process.env.PORT = '0';
 process.env.TELEGRAM_SECRET_TOKEN = 'secret_token_123';
 process.env.ALLOWED_CHAT_ID = '-1001234567890,-1009876543210';
 process.env.BOT_TOKEN = 'mock_bot_token';
+process.env.PROJECT_ID_PROJECT_A = '12345678';
+process.env.REF_PROJECT_A = 'main';
+process.env.GITLAB_HOST = 'https://gitlab.com';
 
 const { app, isSecretTokenValid, isChatAllowed, processTelegramUpdate } = require('../app');
 const { escapeHtml } = require('../services/telegram');
@@ -264,7 +268,7 @@ describe('Telegram Message Processing Logic Tests (Mocked Services)', () => {
     });
 
     assert.strictEqual(triggeredPipelines.length, 1);
-    assert.strictEqual(triggeredPipelines[0].projectId, '12345678');
+    assert.strictEqual(triggeredPipelines[0].projectId, projects['project-a'].projectId);
     assert.strictEqual(sentMessages.length, 1);
     assert.ok(sentMessages[0].text.includes('GitLab CI/CD Pipeline Berhasil Dibuat!'));
     assert.ok(sentMessages[0].text.includes('#987654'));
