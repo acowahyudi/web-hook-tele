@@ -17,7 +17,8 @@ module.exports = {
     // (Opsional) Variabel kustom yang diteruskan ke CI/CD Pipeline
     variables: {
       ACTION: 'git_pull',
-      TRIGGERED_BY: 'telegram_bot'
+      TRIGGERED_BY: 'telegram_bot',
+      RUNNER_TAG: process.env.RUNNER_TAG_PROJECT_SDKUTIM || 'tag-runner-deploy'
     }
   },
   'project-b': {
@@ -27,7 +28,8 @@ module.exports = {
     ref: process.env.REF_PROJECT_B || 'production',
     variables: {
       ACTION: 'git_pull',
-      TRIGGERED_BY: 'telegram_bot'
+      TRIGGERED_BY: 'telegram_bot',
+      RUNNER_TAG: process.env.RUNNER_TAG_PROJECT_B || 'default-runner'
     }
   }
 };
